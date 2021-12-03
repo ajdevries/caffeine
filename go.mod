@@ -1,4 +1,4 @@
-module github.com/rehacktive/caffeine
+module github.com/ajdevries/caffeine
 
 go 1.16
 

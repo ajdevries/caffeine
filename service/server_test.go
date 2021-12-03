@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ajdevries/caffeine/database"
 	"github.com/gorilla/mux"
-	"github.com/rehacktive/caffeine/database"
 )
 
 type testCase struct {
@@ -19,7 +19,7 @@ type testCase struct {
 	payload              string
 	expectedResponseCode int
 	expectedResponse     string
-	beforeTest           func(Database)
+	beforeTest           func(Database) error
 	dbCheck              func(Database) error
 }
 
@@ -89,7 +89,7 @@ var tests = []testCase{
 				return err
 			}
 			if string(value) != jsonPayload {
-				fmt.Errorf("Expected %v got %s", jsonPayload, string(value))
+				return fmt.Errorf("expected %v got %s", jsonPayload, string(value))
 			}
 			return nil
 		},
@@ -147,7 +147,7 @@ var tests = []testCase{
 				return err
 			}
 			if string(value) != jsonPayload {
-				fmt.Errorf("Expected %v got %s", jsonPayload, string(value))
+				return fmt.Errorf("expected %v got %s", jsonPayload, string(value))
 			}
 			return nil
 		},
@@ -159,8 +159,8 @@ var tests = []testCase{
 		payload:              getUserSchema(),
 		expectedResponseCode: http.StatusOK,
 		expectedResponse:     getUserSchema(),
-		beforeTest: func(d Database) {
-			d.Upsert("user"+SchemaId, SchemaId, []byte(getUserSchema()))
+		beforeTest: func(d Database) error {
+			return d.Upsert("user"+SchemaId, SchemaId, []byte(getUserSchema()))
 		},
 	},
 	{
@@ -178,8 +178,8 @@ var tests = []testCase{
 		payload:              "",
 		expectedResponseCode: http.StatusAccepted,
 		expectedResponse:     "{}",
-		beforeTest: func(d Database) {
-			d.Upsert("user"+SchemaId, SchemaId, []byte(getUserSchema()))
+		beforeTest: func(d Database) error {
+			return d.Upsert("user"+SchemaId, SchemaId, []byte(getUserSchema()))
 		},
 	},
 	{
@@ -189,8 +189,8 @@ var tests = []testCase{
 		payload:              validJsonForSchema,
 		expectedResponseCode: http.StatusCreated,
 		expectedResponse:     validJsonForSchema,
-		beforeTest: func(d Database) {
-			d.Upsert("user"+SchemaId, SchemaId, []byte(getUserSchema()))
+		beforeTest: func(d Database) error {
+			return d.Upsert("user"+SchemaId, SchemaId, []byte(getUserSchema()))
 		},
 	},
 	{
@@ -200,15 +200,18 @@ var tests = []testCase{
 		payload:              invalidJsonForSchema,
 		expectedResponseCode: http.StatusBadRequest,
 		expectedResponse:     `{ "status": 400, "message": "(root): lastName is required" }`,
-		beforeTest: func(d Database) {
-			d.Upsert("user"+SchemaId, SchemaId, []byte(getUserSchema()))
+		beforeTest: func(d Database) error {
+			return d.Upsert("user"+SchemaId, SchemaId, []byte(getUserSchema()))
 		},
 	},
 }
 
 func setupCaffeineTest(db Database) *TestingRouter {
 	db.Init()
-	db.Upsert(testNamespace, testKey, []byte(jsonPayload))
+	err := db.Upsert(testNamespace, testKey, []byte(jsonPayload))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	server := Server{
 		db: db,
@@ -227,7 +230,10 @@ func testHandlers(db Database, t *testing.T) {
 	for _, test := range tests {
 		testingRouter := setupCaffeineTest(db)
 		if test.beforeTest != nil {
-			test.beforeTest(db)
+			err := test.beforeTest(db)
+			if err != nil {
+				t.Error(err)
+			}
 		}
 		log.Println("running test: ", test.name)
 		req, _ := http.NewRequest(test.method, test.path, strings.NewReader(test.payload))

@@ -19,7 +19,7 @@ func (s *Server) generateOpenAPIMap(namespaces []string) (map[string]interface{}
 		},
 		"externalDocs": map[string]interface{}{
 			"description": "Github Project Page",
-			"url":         "https://github.com/rehacktive/caffeine",
+			"url":         "https://github.com/ajdevries/caffeine",
 		},
 		"servers": []interface{}{
 			map[string]interface{}{
@@ -165,7 +165,7 @@ func (s *Server) generateOpenAPIMap(namespaces []string) (map[string]interface{}
 
 		if hasSchema {
 			getNamespaceSchema := map[string]interface{}{
-				"type": "array",
+				"type":  "array",
 				"title": fmt.Sprintf("Get All %v", namespace),
 				"items": map[string]interface{}{
 					"type": "object",
@@ -179,7 +179,6 @@ func (s *Server) generateOpenAPIMap(namespaces []string) (map[string]interface{}
 					},
 				},
 			}
-
 
 			componentKey := fmt.Sprintf("get-all-%v", namespace)
 			schemasMap[componentKey] = getNamespaceSchema
@@ -232,7 +231,7 @@ func (s *Server) generateOpenAPIMap(namespaces []string) (map[string]interface{}
 		var searchSchemaNode = map[string]interface{}{}
 
 		if hasSchema {
-			searchSchema := map[string]interface{} {
+			searchSchema := map[string]interface{}{
 				"title": fmt.Sprintf("Search %v", namespace),
 				"properties": map[string]interface{}{
 					"results": map[string]interface{}{
@@ -294,7 +293,7 @@ func (s *Server) generateOpenAPIMap(namespaces []string) (map[string]interface{}
 	}
 
 	getAllNamespacesOperationMap := map[string]interface{}{
-		"description": fmt.Sprintf("List all namespaces"),
+		"description": "List all namespaces",
 		"tags": []interface{}{
 			"namespaces",
 		},

@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rehacktive/caffeine/database"
+	"github.com/ajdevries/caffeine/database"
 
 	"github.com/gorilla/mux"
 	"github.com/itchyny/gojq"
@@ -28,7 +28,7 @@ type Database interface {
 
 const (
 	NamespacePattern = "/ns/{namespace:[a-zA-Z0-9]+}"
-	KeyValuePattern  = "/ns/{namespace:[a-zA-Z0-9]+}/{key:[a-zA-Z0-9]+}"
+	KeyValuePattern  = "/ns/{namespace:[a-zA-Z0-9]+}/{key:[a-zA-Z0-9-]+}"
 	SearchPattern    = "/search/{namespace:[a-zA-Z0-9]+}"
 	SchemaPattern    = "/schema/{namespace:[a-zA-Z0-9]+}"
 	OpenAPIPattern   = "/{openapi|swagger}.json"
@@ -59,7 +59,7 @@ func (s *Server) Init(db Database) {
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"}, // All origins
 		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete},
-		AllowedHeaders: []string{"X-Content-Type", "text/plain"},
+		AllowedHeaders: []string{"*"},
 	})
 
 	s.broker = NewServer()
@@ -360,7 +360,10 @@ func (s *Server) validate(namespace string, data []byte) (interface{}, error) {
 		}
 
 		if result.Valid() {
-			json.Unmarshal(data, &parsed)
+			err = json.Unmarshal(data, &parsed)
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			log.Printf("The document is not valid according to its schema. see errors :")
 			errorLog := ""

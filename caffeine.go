@@ -7,8 +7,8 @@ import (
 
 	"github.com/namsral/flag"
 
-	"github.com/rehacktive/caffeine/database"
-	"github.com/rehacktive/caffeine/service"
+	"github.com/ajdevries/caffeine/database"
+	"github.com/ajdevries/caffeine/service"
 )
 
 const (
@@ -37,7 +37,7 @@ const (
 
 func main() {
 	var addr, dbType, pgHost, pgUser, pgPass, fsRoot string
-	flag.StringVar(&addr, envHostPort, ":8000", "ip:port to expose")
+	flag.StringVar(&addr, envHostPort, ":8080", "ip:port to expose")
 	flag.StringVar(&dbType, envDbType, MEMORY, "db type to use, options: memory | postgres | fs")
 	flag.StringVar(&pgHost, envPgHost, "0.0.0.0", "postgres host (port is 5432)")
 	flag.StringVar(&pgUser, envPgUser, "", "postgres user")
