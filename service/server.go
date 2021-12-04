@@ -57,9 +57,10 @@ func (s *Server) Init(db Database) {
 	s.db.Init()
 
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"}, // All origins
-		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete},
-		AllowedHeaders: []string{"*"},
+		AllowedOrigins:     []string{"*"}, // All origins
+		AllowedMethods:     []string{http.MethodGet, http.MethodPost, http.MethodDelete},
+		AllowedHeaders:     []string{"*"},
+		OptionsPassthrough: true,
 	})
 
 	s.broker = NewServer()
