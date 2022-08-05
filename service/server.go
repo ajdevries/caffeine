@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -50,9 +51,11 @@ type Server struct {
 	router  *mux.Router
 	db      Database
 	broker  *Broker
+
+	keyedMutex KeyedMutex
 }
 
-func (s *Server) Init(db Database) {
+func (s *Server) Init(db Database, mw ...mux.MiddlewareFunc) {
 	s.db = db
 	s.db.Init()
 
@@ -75,6 +78,10 @@ func (s *Server) Init(db Database) {
 	s.router.PathPrefix(SwaggerUIPattern).Handler(http.StripPrefix(SwaggerUIPattern, http.FileServer(http.Dir("./swagger-ui/"))))
 	s.router.Handle(BrokerPattern, s.broker)
 	s.router.Use(mux.CORSMethodMiddleware(s.router))
+
+	for _, m := range mw {
+		s.router.Use(m)
+	}
 
 	srv := &http.Server{
 		Handler:      c.Handler(s.router),
@@ -151,6 +158,9 @@ func (s *Server) keyValueHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	namespace := vars["namespace"]
 	key := vars["key"]
+
+	unlock := s.keyedMutex.Lock(fmt.Sprintf("%s-%s", namespace, key))
+	defer unlock()
 
 	switch r.Method {
 	case http.MethodPost:
